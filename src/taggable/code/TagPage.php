@@ -3,12 +3,12 @@ class TagPage extends Page {
 
 	private static $allowed_children = 'none';
 
-	public static $icon = 'taggable/images/icons/tags-page';	
+	public static $icon = 'abc-silverstripe-taggable/src/taggable/images/icons/tags-page';	
 
 	public function getCMSFields() {
 	
 		$fields = parent::getCMSFields();
-		$fields->removeFieldFromTab( 'Root.Content.Main', 'Content' );
+		$fields->removeFieldFromTab( 'Root.Main', 'Content' );
 		
 		return $fields;
 	}
