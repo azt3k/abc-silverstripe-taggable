@@ -5,19 +5,19 @@ class Taggable extends DataExtension {
 	public static $default_num_page_items 	= 10;	
 	protected static $tags_page_link		= null;
 
-	private $db = array(
+	private static $db = array(
 		'Tags' => 'Text'
-	}
+	);
 
 	/*
 	These fields do not display in model admin
 	also where is updateCMSFields_forPopup
 	*/
-	public function updateCMSFields($fields) {
+	public function updateCMSFields(FieldList $fields) {
 
-		if(get_class($fields->fieldByName('Root.Content')) == 'TabSet'){
+		if(get_class($fields->fieldByName('Root.Main')) == 'TabSet'){
 
-			$fields->addFieldsToTab('Root.Content.Metadata', $this->getTagFields());
+			$fields->addFieldsToTab('Root.Main.Metadata', $this->getTagFields());
 
 		}elseif(get_class($fields->fieldByName('Root')) == 'TabSet'){
 
