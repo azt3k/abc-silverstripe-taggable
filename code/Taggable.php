@@ -6,7 +6,8 @@ class Taggable extends DataExtension {
 	protected static $tags_page_link		= null;
 
 	private static $db = array(
-		'Tags' => 'Text'
+		'Tags' => 'Text',
+		'MetaKeywords' => 'Text'
 	);
 
 	/*
@@ -44,6 +45,7 @@ class Taggable extends DataExtension {
 	protected function getTagFields() {
 
 		$fields = new FieldList(
+			new TextField('MetaKeywords', 'Meta Keywords (comma separated)'),
 			new TextField('Tags', 'Tags (comma separated)')
 		);
 
@@ -235,7 +237,7 @@ class Taggable extends DataExtension {
 				// generate weightings weighting
 				foreach($words as $word){
 					$word = strtolower(trim(html_entity_decode(strval($word))));
-					$word = trim($word, '.!');
+					$word = trim($word, ',.!');
 					if ($word && !in_array(strtolower($word),$exclude) && substr($word,0,1) != '&' && strlen($word) > 3)
 						$parsed[$word] = !empty($parsed[$word]) ? ($parsed[$word] + 1) : 1 ;
 				}
