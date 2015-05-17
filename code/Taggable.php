@@ -2,7 +2,7 @@
 
 class Taggable extends DataExtension {
 
-	public static $default_num_page_items 	= 10;	
+	public static $default_num_page_items 	= 10;
 	protected static $tags_page_link		= null;
 
 	private static $db = array(
@@ -28,7 +28,6 @@ class Taggable extends DataExtension {
 				$fields->push($f);
 			}
 		}
-		
 	}
 
 	public function getIncludeInDump(){
@@ -50,7 +49,7 @@ class Taggable extends DataExtension {
 
 		return $fields;
 	}
-	
+
 	// need to get these to work properly
 	public function getExplodedTags(){
 		return explode(',', $this->owner->Tags);
@@ -64,8 +63,8 @@ class Taggable extends DataExtension {
 		return $this->owner->Tags
 			? self::tags2Links($this->owner->Tags)
 			: null ;
-	}	
-	
+	}
+
 	/*
 	 *	because this is a data set of mixed classes we need to manually create a db query
 	 */
@@ -80,14 +79,14 @@ class Taggable extends DataExtension {
 
 		// Build Query Data
 		foreach($classes as $className){
-			
+
 			// Fetch Class Data
 			$table 		= DataObjectHelper::getTableForClass($className);
 			$extTable 	= DataObjectHelper::getExtensionTableForClassWithProperty($className,'Tags');
-			
+
 			// $tables we are working with
 			if ($table) $tables[$table] = $table;
-			
+
 			// join
 			if( $table && $extTable && $table!=$extTable ){
 				$joins[$table][] = $extTable;
@@ -97,10 +96,10 @@ class Taggable extends DataExtension {
 
 			// Where
 			if ($table) $where[$table][] = $table.".ClassName = '".$className."'";
-			
+
 			// Tag filter
 			// Should be REGEX so we don't get partial matches
-			if ($extTable) $filter[$table][] = $extTable.".Tags REGEXP '(^|,| )+".Convert::raw2sql($tag)."($|,| )+'";	
+			if ($extTable) $filter[$table][] = $extTable.".Tags REGEXP '(^|,| )+".Convert::raw2sql($tag)."($|,| )+'";
 
 		}
 
@@ -133,7 +132,7 @@ class Taggable extends DataExtension {
 		}
 
 		// Add Global Filter to Query
-		if ($filterSql) $sql.="WHERE ".$filterSql;		
+		if ($filterSql) $sql.="WHERE ".$filterSql;
 
 		// Add Limits to Query
 		$sql.="LIMIT ".$start.",".$limit;
@@ -164,7 +163,7 @@ class Taggable extends DataExtension {
 	}
 
 	// attach specific urls to tags for rendering
-	
+
 	public static function tags2Links($strTags){
 
 		// find the url of the tags page

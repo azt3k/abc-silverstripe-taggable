@@ -3,13 +3,13 @@ class TagPage extends Page {
 
 	private static $allowed_children = 'none';
 
-	public static $icon = 'abc-silverstripe-taggable/src/taggable/images/icons/tags-page';	
+	public static $icon = 'abc-silverstripe-taggable/src/taggable/images/icons/tags-page';
 
 	public function getCMSFields() {
-	
+
 		$fields = parent::getCMSFields();
 		$fields->removeFieldFromTab( 'Root.Main', 'Content' );
-		
+
 		return $fields;
 	}
 
@@ -42,7 +42,7 @@ class TagPage_Controller extends Page_Controller {
 
 
 	/*
-	 * tag Action 
+	 * tag Action
 	 */
 	public function tag(){
 
@@ -53,7 +53,7 @@ class TagPage_Controller extends Page_Controller {
 		$dataSet = Taggable::getTaggedWith($tag, null, $paginator->start, $paginator->limit);
 
 		$this->TagSet = $dataSet;
-		
+
 		// Supply template with pagination data
 		$this->Paginator = $paginator->dataForTemplate($dataSet->unlimitedRowCount, 2);
 
