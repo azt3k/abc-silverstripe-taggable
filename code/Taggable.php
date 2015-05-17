@@ -209,9 +209,13 @@ class Taggable extends DataExtension {
 
 		// add some tags if there are none
 		if (!$this->owner->Tags) {
+
 			if (!empty($this->owner->MetaKeywords)) {
+
 				$this->owner->Tags = $this->owner->MetaKeywords;
+
 			} else {
+
 				$exclude = array(
 					'of','a','the','and','an','or','nor',
 					'but','is','if','then','else','when',
@@ -219,25 +223,34 @@ class Taggable extends DataExtension {
 					'in','out','over','to','into','with',
 					'also','back','well','big','when','where',
 					'why','who','which', 'it', 'be', 'so', 'far',
-					'one', 'our', 'we','only','they'
+					'one', 'our', 'we','only','they','this'
 				);
+
+				// generate words from content
 				$titlePieces = explode(' ', strip_tags($this->owner->Title));
 				$words = $parsed = array();
 				if (!empty($this->owner->Title)) 	$words = array_merge( $words, $titlePieces, $titlePieces, $titlePieces); // sneakily increase title weighting
 				if (!empty($this->owner->Content)) 	$words = array_merge( $words, explode(' ', strip_tags($this->owner->Content)));
+
+				// generate weightings weighting
 				foreach($words as $word){
 					$word = strtolower(trim(html_entity_decode(strval($word))));
-					if ($word && !in_array(strtolower($word),$exclude) && substr($word,0,1) != '&' && strlen($word) > 3) $parsed[$word] = !empty($parsed[$word]) ? ($parsed[$word] + 1) : 1 ;
+					$word = trim($word, '.!');
+					if ($word && !in_array(strtolower($word),$exclude) && substr($word,0,1) != '&' && strlen($word) > 3)
+						$parsed[$word] = !empty($parsed[$word]) ? ($parsed[$word] + 1) : 1 ;
 				}
+
+				// sort by weight and extract the top 10
 				arsort($parsed);
 				$sample = array_keys(array_slice($parsed,0, 10));
+
 				// check again
 				$dChecked = array();
 				foreach ($sample as $value) {
 					$value = strval($value);
 					if (!empty($value) && strlen($value) > 3 ) $dChecked[] = $value;
 				}
-				$tags = implode(', ',$dChecked);
+				$tags = implode(', ', $dChecked);
 				$this->owner->Tags = $tags;
 			}
 		}
