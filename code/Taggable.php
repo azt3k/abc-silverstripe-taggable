@@ -15,16 +15,16 @@ class Taggable extends DataExtension {
 	*/
 	public function updateCMSFields(FieldList $fields) {
 
-		if(get_class($fields->fieldByName('Root.Main')) == 'TabSet'){
+		if (get_class($fields->fieldByName('Root.Main')) == 'TabSet') {
 
 			$fields->addFieldsToTab('Root.Main.Metadata', $this->getTagFields());
 
-		}elseif(get_class($fields->fieldByName('Root')) == 'TabSet'){
+		} else if (get_class($fields->fieldByName('Root')) == 'TabSet') {
 
 			$fields->addFieldsToTab('Root.Metadata', $this->getTagFields());
 
-		}elseif(get_class($fields) == 'FieldSet'){
-			foreach($this->getTagFields() as $f){
+		} else if (get_class($fields) == 'FieldSet' || get_class($fields) == 'FieldList') {
+			foreach ($this->getTagFields() as $f) {
 				$fields->push($f);
 			}
 		}
@@ -43,7 +43,7 @@ class Taggable extends DataExtension {
 	 */
 	protected function getTagFields() {
 
-		$fields = array(
+		$fields = new FieldList(
 			new TextField('Tags', 'Tags (comma separated)')
 		);
 
