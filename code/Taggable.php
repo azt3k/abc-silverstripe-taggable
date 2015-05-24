@@ -54,11 +54,11 @@ class Taggable extends DataExtension {
 
 	// need to get these to work properly
 	public function getExplodedTags(){
-		return explode(',', $this->owner->Tags);
+		return array_map('trim', explode(',', $this->owner->Tags));
 	}
 
 	public function setExplodedTags($tags){
-		$this->owner->Tags = is_array($tags) ? implode(',', $tags) : $tags ;
+		$this->owner->Tags = is_array($tags) ? implode(',', array_map('trim', $tags)) : $tags ;
 	}
 
 	public function getTagURLStr(){
@@ -67,15 +67,26 @@ class Taggable extends DataExtension {
 			: null ;
 	}
 
-	/*
-	 *	because this is a data set of mixed classes we need to manually create a db query
+
+	/**
+	 * [getTaggedWith description]
+	 * @param [type]  $tags       [description]
+	 * @param [type]  $filterSql  [description]
+	 * @param integer $start      [description]
+	 * @param integer $limit      [description]
+	 * @param string  $lookupMode if AND then you get content tagged with all ptovided tags
+	 *                            if OR then you get content tagged with at least one of the provided tags
 	 */
-	public static function getTaggedWith($tag, $filterSql=null, $start = 0, $limit = 40){
+	public static function getTaggedWith($tags, $filterSql = null, $start = 0, $limit = 40, $lookupMode = 'OR'){
+
+		// clean up input
+		if (!is_array($tags)) $tags = array($tags);
+		if ($lookupMode != 'AND' && $lookupMode != 'OR') throw new Exception('Invalid lookupMode supplied');
 
 		// Set some vars
 		$classes 	= DataObjectHelper::getExtendedClasses('Taggable');
-		$set 		= new DataObjectSet;
-		$db 		= AddDB::getInstance();
+		$set 		= new ArrayList;
+		$db 		= AbcDB::getInstance();
 		$sql 		= '';
 		$tables = $joins = $filter = array();
 
@@ -84,7 +95,7 @@ class Taggable extends DataExtension {
 
 			// Fetch Class Data
 			$table 		= DataObjectHelper::getTableForClass($className);
-			$extTable 	= DataObjectHelper::getExtensionTableForClassWithProperty($className,'Tags');
+			$extTable 	= DataObjectHelper::getExtensionTableForClassWithProperty($className, 'Tags');
 
 			// $tables we are working with
 			if ($table) $tables[$table] = $table;
@@ -97,11 +108,15 @@ class Taggable extends DataExtension {
 			}
 
 			// Where
-			if ($table) $where[$table][] = $table.".ClassName = '".$className."'";
+			if ($table) $where[$table][] = $table . ".ClassName = '" . $className . "'";
 
 			// Tag filter
 			// Should be REGEX so we don't get partial matches
-			if ($extTable) $filter[$table][] = $extTable.".Tags REGEXP '(^|,| )+".Convert::raw2sql($tag)."($|,| )+'";
+			if ($extTable) {
+				foreach ($tags as $tag) {
+					$filter[$table][] = $extTable . ".Tags REGEXP '(^|,| )+" . Convert::raw2sql($tag) . "($|,| )+'";
+				}
+			}
 
 		}
 
@@ -114,7 +129,9 @@ class Taggable extends DataExtension {
 				// Prepare Where Statement
 				$uWhere 	= array_unique($where[$table]);
 				$uFilter 	= array_unique($filter[$table]);
-				$wSql 		= "(".implode(' OR ',$uWhere).") AND (".implode(' OR ',$uFilter).")";
+
+				// this lookupMode injection will prob break something in AND mode
+				$wSql 		= "(".implode(' OR ',$uWhere).") AND (".implode(' ' . $lookupMode . ' ',$uFilter).")";
 
 				// Make the rest of the SQL
 				if ($sql) $sql.= "UNION ALL"."\n\n";
@@ -125,21 +142,24 @@ class Taggable extends DataExtension {
 				// join
 				$join = array_unique($joins[$table]);
 				foreach($join as $j){
-					$sql.= " LEFT JOIN ".$j." ON ".$table.".ID = ".$j.".ID"."\n";
+					$sql .= " LEFT JOIN " . $j . " ON " . $table . ".ID = " . $j . ".ID" . "\n";
 				}
 
 				// Add the WHERE statement
-				$sql.= "WHERE ".$wSql."\n\n";
+				$sql .= "WHERE " . $wSql . "\n\n";
 			}
 		}
 
 		// Add Global Filter to Query
-		if ($filterSql) $sql.="WHERE ".$filterSql;
+		if ($filterSql) {
+			$sql .= (count($tables) == 1 ? "AND " : "WHERE ") . $filterSql;
+		}
 
 		// Add Limits to Query
-		$sql.="LIMIT ".$start.",".$limit;
+		$sql .= " LIMIT " . $start . "," . $limit;
 
 		// Get Data
+		die($sql);
 		$result = $db->query($sql);
 		$result = $result ? $result->fetchAll(PDO::FETCH_OBJ) : array() ;
 
