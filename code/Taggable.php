@@ -159,7 +159,7 @@ class Taggable extends DataExtension {
 		$sql .= " LIMIT " . $start . "," . $limit;
 
 		// Get Data
-		die($sql);
+		// die($sql);
 		$result = $db->query($sql);
 		$result = $result ? $result->fetchAll(PDO::FETCH_OBJ) : array() ;
 
