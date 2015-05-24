@@ -136,8 +136,8 @@ class Taggable extends DataExtension {
 				// Make the rest of the SQL
 				if ($sql) $sql.= "UNION ALL"."\n\n";
 				$rowCountSQL = !$sql ? "SQL_CALC_FOUND_ROWS " : "" ;
-				$sql.= "SELECT ".$rowCountSQL.$table.".ClassName, ".$table.".ID"."\n";
-				$sql.= "FROM ".$table."\n";
+				$sql.= "SELECT " . $rowCountSQL . $table . ".ClassName, " . $table . ".ID" . "\n";
+				$sql.= "FROM " . $table . "\n";
 
 				// join
 				$join = array_unique($joins[$table]);
