@@ -50,7 +50,8 @@ class Taggable extends DataExtension {
             'in','out','over','to','into','with',
             'also','back','well','big','when','where',
             'why','who','which', 'it', 'be', 'so', 'far',
-            'one', 'our', 'we','only','they','this'
+            'one', 'our', 'we','only','they','this', 'i',
+            'do'
         );
     }
 
