@@ -13,6 +13,10 @@ class Taggable extends DataExtension {
         'MetaKeywords' => 'Text'
     );
 
+    // private static $indexes = array(
+    //     'Tags' => true,
+    // );
+
     /*
     These fields do not display in model admin
     also where is updateCMSFields_forPopup
@@ -34,10 +38,6 @@ class Taggable extends DataExtension {
         }
     }
 
-
-    public static $indexes = array(
-        'Tags' => true,
-    );
 
     // static Methods
     // ---------------
