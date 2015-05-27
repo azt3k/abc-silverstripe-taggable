@@ -272,7 +272,7 @@ class Taggable extends DataExtension {
 
             } else {
 
-                $exclude = static::get_black_listed_words();
+                $exclude = static::get_blacklisted_words();
 
                 // generate words from content
                 $titlePieces = explode(' ', strip_tags($this->owner->Title));
