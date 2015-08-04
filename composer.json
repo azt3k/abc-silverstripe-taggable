@@ -2,7 +2,7 @@
     "name": "azt3k/abc-silverstripe-taggable",
     "description": "Add tags to SilverStripe DataObjects",
     "license": "BSD",
-    "type": "silverstripe-module",    
+    "type": "silverstripe-module",
     "authors": [
         {
             "name": "Aaron Latham-Ilari",
@@ -12,9 +12,9 @@
     "minimum-stability": "dev",
     "require": {
         "php"                       : ">=5.3.0",
-        "composer/installers"       : ">=1.0",     
+        "composer/installers"       : ">=1.0",
         "silverstripe/framework"    : "3.1.*@dev",
         "silverstripe/cms"          : "3.1.*@dev",
-        "azt3k/abc-silverstripe"    : "dev-master"
+        "azt3k/abc-silverstripe"    : "*@stable"
     }
 }
