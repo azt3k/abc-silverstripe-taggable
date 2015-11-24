@@ -13,9 +13,12 @@ class Taggable extends DataExtension {
         'MetaKeywords' => 'Text'
     );
 
-    // private static $indexes = array(
-    //     'Tags' => true,
-    // );
+    private static $indexes = array(
+        'Tags'  => array(
+            'type' => 'fulltext',
+            'value' => '"Tags"'
+        )
+    );
 
     /*
     These fields do not display in model admin
