@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR=~/builds/abc-silverstripe-taggable
+
+export DB=SQLITE
+
+rm -rf $DIR/ss/abc-silverstripe-taggable
+cp -rf $PDIR/.. $DIR/ss/abc-silverstripe-taggable
+
+bash $DIR/ss/framework/sake dev/tests/module/abc-silverstripe-taggable
