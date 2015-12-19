@@ -1,64 +1,64 @@
 <?php
-class TagPage extends Page {
+class TagPage extends Page
+{
 
-	private static $allowed_children = 'none';
+    private static $allowed_children = 'none';
 
-	public static $icon = 'abc-silverstripe-taggable/src/taggable/images/icons/tags-page';
+    public static $icon = 'abc-silverstripe-taggable/src/taggable/images/icons/tags-page';
 
-	public function getCMSFields() {
+    public function getCMSFields()
+    {
+        $fields = parent::getCMSFields();
+        $fields->removeFieldFromTab('Root.Main', 'Content');
 
-		$fields = parent::getCMSFields();
-		$fields->removeFieldFromTab( 'Root.Main', 'Content' );
-
-		return $fields;
-	}
-
+        return $fields;
+    }
 }
 
-class TagPage_Controller extends Page_Controller {
+class TagPage_Controller extends Page_Controller
+{
 
-	/**
-	 * An array of actions that can be accessed via a request. Each array element should be an action name, and the
-	 * permissions or conditions required to allow the user to access it.
-	 *
-	 * <code>
-	 * array (
-	 *     'action', // anyone can access this action
-	 *     'action' => true, // same as above
-	 *     'action' => 'ADMIN', // you must have ADMIN permissions to access this action
-	 *     'action' => '->checkAction' // you can only access this action if $this->checkAction() returns true
-	 * );
-	 * </code>
-	 *
-	 * @var array
-	 */
-	public static $allowed_actions = array (
-		'tag'
-	);
+    /**
+     * An array of actions that can be accessed via a request. Each array element should be an action name, and the
+     * permissions or conditions required to allow the user to access it.
+     *
+     * <code>
+     * array (
+     *     'action', // anyone can access this action
+     *     'action' => true, // same as above
+     *     'action' => 'ADMIN', // you must have ADMIN permissions to access this action
+     *     'action' => '->checkAction' // you can only access this action if $this->checkAction() returns true
+     * );
+     * </code>
+     *
+     * @var array
+     */
+    public static $allowed_actions = array(
+        'tag'
+    );
 
-	public function init() {
-		parent::init();
-	}
+    public function init()
+    {
+        parent::init();
+    }
 
 
-	/*
-	 * tag Action
-	 */
-	public function tag(){
+    /*
+     * tag Action
+     */
+    public function tag()
+    {
+        $this->TagStr = $tag = Director::urlParam('ID');
 
-		$this->TagStr = $tag = Director::urlParam('ID');
+        // page limits
+        $paginator = new AbcPaginator(Taggable::$default_num_page_items);
+        $dataSet = Taggable::getTaggedWith($tag, null, $paginator->start, $paginator->limit);
 
-		// page limits
-		$paginator = new AbcPaginator(Taggable::$default_num_page_items);
-		$dataSet = Taggable::getTaggedWith($tag, null, $paginator->start, $paginator->limit);
+        $this->TagSet = $dataSet;
 
-		$this->TagSet = $dataSet;
+        // Supply template with pagination data
+        $this->Paginator = $paginator->dataForTemplate($dataSet->unlimitedRowCount, 2);
 
-		// Supply template with pagination data
-		$this->Paginator = $paginator->dataForTemplate($dataSet->unlimitedRowCount, 2);
-
-		return array();
-
-	}
-
+        return array();
+    }
 }
