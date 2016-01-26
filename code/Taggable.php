@@ -10,7 +10,9 @@ class Taggable extends DataExtension {
 
     private static $db = array(
         'Tags' => 'Text',
-        'MetaKeywords' => 'Text'
+        'MetaKeywords' => 'Text',
+        'ReGenerateTags' => 'Boolean',
+        'ReGenerateKeywords' => 'Boolean',
     );
 
     private static $indexes = array(
@@ -87,7 +89,9 @@ class Taggable extends DataExtension {
 
         $fields = new FieldList(
             new TextField('MetaKeywords', 'Meta Keywords (comma separated)'),
-            new TextField('Tags', 'Tags (comma separated)')
+            new CheckboxField('ReGenerateKeywords', 'Regenerate Keywords'),
+            new TextField('Tags', 'Tags (comma separated)'),
+            new CheckboxField('ReGenerateTags', 'Regenerate Tags'),
         );
 
         return $fields;
@@ -268,9 +272,17 @@ class Taggable extends DataExtension {
         parent::onBeforeWrite();
 
         // add some tags if there are none
-        if (!$this->owner->Tags) {
+        if (
+            !$this->owner->Tags ||
+            $this->owner->ReGenerateTags ||
+            $ths->owner->ReGenerateKeywords
+        ) {
 
-            if (!empty($this->owner->MetaKeywords)) {
+            if (
+                !empty($this->owner->MetaKeywords) &&
+                !$this->owner->ReGenerateTags &&
+                !$ths->owner->ReGenerateKeywords
+            ) {
 
                 $this->owner->Tags = $this->owner->MetaKeywords;
 
@@ -292,9 +304,9 @@ class Taggable extends DataExtension {
                         $parsed[$word] = !empty($parsed[$word]) ? ($parsed[$word] + 1) : 1 ;
                 }
 
-                // sort by weight and extract the top 10
+                // sort by weight and extract the top 15
                 arsort($parsed);
-                $sample = array_keys(array_slice($parsed,0, 10));
+                $sample = array_keys(array_slice($parsed, 0, 15));
 
                 // check again
                 $dChecked = array();
@@ -303,7 +315,9 @@ class Taggable extends DataExtension {
                     if (!empty($value) && strlen($value) > 3 ) $dChecked[] = $value;
                 }
                 $tags = implode(', ', $dChecked);
-                $this->owner->Tags = $tags;
+
+                if ($this->owner->ReGenerateTags) $this->owner->Tags = $tags;
+                if ($this->owner->ReGenerateKeywords) $this->owner->Keywords = $tags;
             }
         }
 
@@ -314,6 +328,10 @@ class Taggable extends DataExtension {
 
         // lowercase
         $this->owner->Tags = strtolower($this->owner->Tags);
+
+        // unset the Regen Params
+        $this->owner->ReGenerateTags = null;
+        $this->owner->ReGenerateKeywords = null;
     }
 
 }
