@@ -37,6 +37,7 @@ class Taggable extends DataExtension {
             $fields->addFieldsToTab('Root.Metadata', $this->getTagFields());
 
         } else if (get_class($fields) == 'FieldSet' || get_class($fields) == 'FieldList') {
+            
             foreach ($this->getTagFields() as $f) {
                 $fields->push($f);
             }
