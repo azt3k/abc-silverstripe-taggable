@@ -282,7 +282,7 @@ class Taggable extends DataExtension {
             if (
                 !empty($this->owner->MetaKeywords) &&
                 !$this->owner->ReGenerateTags &&
-                !$ths->owner->ReGenerateKeywords
+                !$this->owner->ReGenerateKeywords
             ) {
 
                 $this->owner->Tags = $this->owner->MetaKeywords;
@@ -318,7 +318,7 @@ class Taggable extends DataExtension {
                 $tags = implode(', ', $dChecked);
 
                 if ($this->owner->ReGenerateTags) $this->owner->Tags = $tags;
-                if ($this->owner->ReGenerateKeywords) $this->owner->Keywords = $tags;
+                if ($this->owner->ReGenerateKeywords) $this->owner->MetaKeywords = $tags;
             }
         }
 
@@ -329,6 +329,7 @@ class Taggable extends DataExtension {
 
         // lowercase
         $this->owner->Tags = strtolower($this->owner->Tags);
+        $this->owner->MetaKeywords = strtolower($this->owner->MetaKeywords);
 
         // unset the Regen Params
         $this->owner->ReGenerateTags = null;
