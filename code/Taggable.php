@@ -91,7 +91,7 @@ class Taggable extends DataExtension {
             new TextField('MetaKeywords', 'Meta Keywords (comma separated)'),
             new CheckboxField('ReGenerateKeywords', 'Regenerate Keywords'),
             new TextField('Tags', 'Tags (comma separated)'),
-            new CheckboxField('ReGenerateTags', 'Regenerate Tags'),
+            new CheckboxField('ReGenerateTags', 'Regenerate Tags')
         );
 
         return $fields;
