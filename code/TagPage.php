@@ -3,7 +3,7 @@ class TagPage extends Page {
 
 	private static $allowed_children = 'none';
 
-	public static $icon = 'abc-silverstripe-taggable/src/taggable/images/icons/tags-page';
+	public static $icon = 'abc-silverstripe-taggable/assets/build/img/icons/tags-page';
 
 	public function getCMSFields() {
 

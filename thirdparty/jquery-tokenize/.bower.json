@@ -1,0 +1,37 @@
+{
+  "name": "jquery-tokenize",
+  "description": "Query Tokenize is a plugin which allows your users to select multiple items from a predefined list or ajax, using autocompletion as they type to find each item. You may have seen a similar type of text entry when filling in the recipients field sending messages on facebook or tags on tumblr.",
+  "author": "David Zeller <me@zellerda.com>",
+  "homepage": "https://www.zellerda.com/projects/jquery/tokenize",
+  "bugs": {
+    "url": "https://github.com/zellerda/Tokenize/issues"
+  },
+  "main": "jquery.tokenize.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zellerda/Tokenize.git"
+  },
+  "files": [
+    "jquery.tokenize.js",
+    "jquery.tokenize.css"
+  ],
+  "keywords": [
+    "tokenizer",
+    "tokeniser",
+    "tokenize",
+    "tokenise",
+    "tags",
+    "taggify",
+    "keywords"
+  ],
+  "license": "BSD",
+  "_release": "bacc4fc334",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "bacc4fc3342ed9a426b5af0d12e121bfa3383ccf"
+  },
+  "_source": "https://github.com/azt3k/Tokenize.git",
+  "_target": "master",
+  "_originalSource": "https://github.com/azt3k/Tokenize.git"
+}

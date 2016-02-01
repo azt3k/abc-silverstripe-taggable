@@ -13,6 +13,7 @@ class Taggable extends DataExtension {
         'MetaKeywords' => 'Text',
         'ReGenerateTags' => 'Boolean',
         'ReGenerateKeywords' => 'Boolean',
+        'RestrictToKnownTags' => 'Boolean',
     );
 
     private static $indexes = array(
@@ -89,10 +90,11 @@ class Taggable extends DataExtension {
     protected function getTagFields() {
 
         $fields = new FieldList(
+            new CheckboxField('RestrictToKnownTags', 'Restrict to known terms when regenerating'),
             new TextField('MetaKeywords', 'Meta Keywords (comma separated)'),
             new CheckboxField('ReGenerateKeywords', 'Regenerate Keywords'),
             new TextField('Tags', 'Tags (comma separated)'),
-            new CheckboxField('ReGenerateTags', 'Regenerate Tags')
+            new CheckboxField('ReGenerateTags', 'Regenerate Tags'),
         );
 
         return $fields;

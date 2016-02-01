@@ -1,0 +1,185 @@
+// the tokeniser library creates terrible classnames
+// scss-lint:disable SelectorFormat
+
+// colors
+$white: white;
+$color-mischka-approx: #ccd5e3;
+$color-porcelain-approx: #eff2f7;
+$color-vis-vis-approx: #fcefa1;
+$color-orange-white-approx: #fbf9ee;
+$color-alto-approx: #ddd;
+$color-celeste-approx: #ccc;
+$color-rock-blue-approx: #a6b4ce;
+$black-20: rgba(0, 0, 0, 0.2);
+$color-lochmara-approx: #0081c2;
+$color-deep-cerulean-approx: #0077b3;
+
+//fonts
+$font-0: Arial;
+$font-1: Helvetica;
+$font-2: sans-serif;
+$font-3: sans-serif !important;
+
+//@extend-elements
+//original selectors
+//div.Tokenize ul.TokensContainer li.Token, div.Tokenize ul.TokensContainer li.TokenSearch
+%extend_1 {
+	margin: 5px 0 0 5px;
+	height: 18px;
+	float: left;
+}
+
+
+div {
+
+	&.TokenizeMeasure {
+		font-family: $font-0, $font-1, $font-2;
+		font-size: 12px;
+	}
+
+	&.Tokenize {
+		position: relative;
+		display: inline-block;
+		zoom: 1;
+
+		ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+
+			li {
+				white-space: nowrap;
+
+				span {
+					font-family: $font-0, $font-1, $font-2;
+					font-size: 12px;
+				}
+			}
+
+			&.TokensContainer {
+				cursor: text;
+				padding: 0 5px 5px 0;
+				height: 100px;
+				overflow-y: auto;
+				background-color: $white;
+				//Instead of the line below you could use @include user-select($select)
+				user-select: none;
+				border: 1px solid $color-celeste-approx;
+
+				li {
+					&.TokenSearch {
+						@extend %extend_1;
+
+						input {
+							font-family: $font-0, $font-1, $font-2;
+							font-size: 12px;
+							margin: 0;
+							padding: 1px 0;
+							background-color: transparent;
+							line-height: 18px;
+							border: none;
+							outline: none;
+						}
+					}
+
+					&.Token {
+						@extend %extend_1;
+						border: 1px solid $color-mischka-approx;
+						background-color: $color-porcelain-approx;
+						padding: 0 5px;
+						line-height: 18px;
+
+						&.MovingShadow {
+							border: 1px solid $color-vis-vis-approx;
+							background-color: $color-orange-white-approx;
+						}
+
+						&.PendingDelete {
+							opacity: 0.5;
+							filter: alpha(opacity = 50);
+						}
+
+						a.Close {
+							font-family: $font-0, $font-1, $font-3;
+							font-size: 16px !important;
+							line-height: 18px;
+							float: right;
+							margin: 1px 0 0 5px;
+							padding: 0;
+							cursor: pointer;
+							color: $color-rock-blue-approx;
+
+							&:hover {
+								background: transparent;
+								text-decoration: none;
+							}
+						}
+					}
+
+					&.Placeholder {
+						color: $color-alto-approx;
+						position: absolute;
+						line-height: 20px;
+						padding: 5px 0 0 5px;
+						display: none;
+					}
+				}
+
+				&.Autosize {
+					height: auto;
+				}
+
+				&.ui-sortable:not(.ui-sortable-disabled) li.Token {
+					cursor: move;
+				}
+			}
+
+			&.Dropdown {
+				border: 1px solid $color-celeste-approx;
+				//Instead of the line below you could use @include box-sizing($bs)
+				box-sizing: border-box;
+				display: none;
+				width: 100%;
+				padding: 5px 0;
+				margin: -1px 0 0;
+				position: absolute;
+				background-color: $white;
+				overflow-y: auto;
+				//Instead of the line below you could use @include box-shadow($shadow-1, $shadow-2, $shadow-3, $shadow-4, $shadow-5, $shadow-6, $shadow-7, $shadow-8, $shadow-9, $shadow-10)
+				box-shadow: 0 5px 10px $black-20;
+				//Instead of the line below you could use @include background-clip($clip)
+				background-clip: padding-box;
+				//Instead of the line below you could use @include border-radius($radius, $vertical-radius)
+				border-radius: 0 0 6px 6px;
+				z-index: 20;
+
+				li {
+					padding: 5px 20px;
+					overflow: hidden;
+					cursor: pointer;
+
+					&.Hover {
+						color: $white;
+						text-decoration: none;
+						background-color: $color-lochmara-approx;
+						background-image: linear-gradient(to bottom, $color-lochmara-approx, $color-deep-cerulean-approx);
+						background-repeat: repeat-x;
+						filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
+					}
+				}
+			}
+		}
+
+		&.Disabled ul.TokensContainer {
+			cursor: not-allowed;
+
+			input {
+				cursor: not-allowed;
+			}
+
+			li.Token a.Close {
+				display: none;
+			}
+		}
+	}
+}

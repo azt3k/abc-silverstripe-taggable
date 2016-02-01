@@ -1,0 +1,12 @@
+{
+  "name": "catch/ss-embeddable-gallery",
+  "version": "0.0.1",
+  "authors": [
+    "Aaron Latham-Anderson <aaron@catch.co.nz>"
+  ],
+  "license": "Contributor License Agreement",
+  "private": true,
+  "dependencies": {
+    "jquery-tokenize" : "https://github.com/azt3k/Tokenize.git#master"
+  }
+}
