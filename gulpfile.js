@@ -161,9 +161,7 @@
 
     gulp.task('js-lib', function() {
         return gulp.src([
-            _.vendor + 'jquery-tokenize/jquery.tokenize.js',
-            _.vendor + '/respond/dest/respond.min.js',
-            _.vendor + '/picturefill/src/picturefill.js'
+            _.vendor + '/jquery-tokenize/jquery.tokenize.js'
         ])
         .pipe($.plumber({errorHandler: eHandler}))
         .pipe($.concat('lib.js'))
@@ -188,6 +186,23 @@
         }));
     });
 
+    gulp.task('js-build', ['js-lib', 'js'], function() {
+        gulp.src([
+            _.build + '/js/**/*.js'
+        ])
+        .pipe($.plumber({errorHandler: eHandler}))
+        .pipe($.uglifyjs({
+            mangle: {
+                except: ['$','require','exports','define']
+            }
+        }))
+        .pipe(gulp.dest(_.build + '/js'))
+        .pipe($.size())
+        .pipe($.notify({
+            onLast: true,
+            message: 'js-build complete'
+        }));
+    });
 
     //|**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //| ✓ styles
@@ -319,7 +334,8 @@
 
         // Watch script files
         $.watch([_.src + '/js/**/*', _.vendor + '/**/*.js'], function() {
-            gulp.start('js-predom');
+            gulp.start('js-lib');
+            gulp.start('js');
             gulp.start('jshint');
         });
 
@@ -363,7 +379,7 @@
     // not 100% sure of a nice way to lint php for this currently
     // gulp.task('test', ['jsonlint', 'jshint', 'php-qa', 'scss-lint']);
     gulp.task('test', ['jsonlint', 'jshint', 'scss-lint']);
-    gulp.task('build', ['test', 'img', 'js-lib', 'js', 'styles-blessed-build', 'copy']);
+    gulp.task('build', ['test', 'img', 'js-build', 'styles-blessed-build', 'copy']);
 
     //|**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //| ✓ default
