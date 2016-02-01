@@ -8,9 +8,7 @@ class TagField extends TextField {
 
 		Requirements::javascript(TAGGABLE_DIR . '/assets/build/js/lib.js');
 		Requirements::javascript(TAGGABLE_DIR . '/assets/build/js/tagfield.js');
-		Requirements::customScript(file_get_contents($_SERVER['DOCUMENT_ROOT'].'/'.ABC_PATH.'/javascript/ColourPickerField.js'));
-		Requirements::css(ABC_VENDOR_PATH . '/jquery.colorpicker/jquery.colorpicker.css');
-        Requirements::css(ABC_PATH . '/css/ColourPickerField.css');
+		Requirements::css(TAGGABLE_DIR . '/assets/build/css/main.css');
 
 		$this->addExtraClass('text');
 	}
