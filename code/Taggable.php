@@ -57,7 +57,7 @@ class Taggable extends DataExtension {
             'also','back','well','big','when','where',
             'why','who','which', 'it', 'be', 'so', 'far',
             'one', 'our', 'we','only','they','this', 'i',
-            'do'
+            'do', 'there', 'just', 'that'
         );
     }
 
@@ -153,7 +153,7 @@ class Taggable extends DataExtension {
             }
 
             // Where
-            if ($table) $where[$table][] = $table . ".ClassName = '" . $className . "'";
+            if ($table) $where[$table][] = "LOWER(" .$table . ".ClassName) = '" . strtolower($className) . "'";
 
             // Tag filter
             // Should be REGEX so we don't get partial matches
@@ -202,7 +202,7 @@ class Taggable extends DataExtension {
         $sql .= " LIMIT " . $start . "," . $limit;
 
         // Get Data
-        // die($sql);
+        die($sql);
         $result = $db->query($sql);
         $result = $result ? $result->fetchAll(PDO::FETCH_OBJ) : array() ;
 
