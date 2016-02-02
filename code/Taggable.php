@@ -291,13 +291,49 @@ class Taggable extends DataExtension {
 
             } else {
 
+                // get the blacklist
                 $exclude = static::get_blacklisted_words();
 
-                // generate words from content
-                $titlePieces = explode(' ', strip_tags($this->owner->Title));
+                // init recievers
                 $words = $parsed = array();
-                if (!empty($this->owner->Title))     $words = array_merge( $words, $titlePieces, $titlePieces, $titlePieces); // sneakily increase title weighting
-                if (!empty($this->owner->Content))     $words = array_merge( $words, explode(' ', strip_tags($this->owner->Content)));
+
+                // look at the existing tags
+                if ($this->owner->RestrictToKnownTags) {
+
+                    // handle the loading
+                    $filter = array_keys($parsed);
+                    $tags = new DataList('Tag');
+
+                    // compare each tag with the content
+                    foreach ($tags as $tag) {
+
+                        // title weighting x3
+                        if (stripos(strip_tags($this->owner->Title), $tag->Title) !== false)
+                            $words = array_merge($words, array($tag->Title, $tag->Title, $tag->Title));
+
+                        // add the content
+                        if (stripos(strip_tags($this->owner->Content), $tag->Title) !== false)
+                            $words[] = $tag->Title;
+
+                    }
+                }
+
+                // analyse the text
+                else {
+
+                    // generate words from content
+                    $titlePieces = explode(' ', strip_tags($this->owner->Title));
+
+
+                    // title weighting x3
+                    if (!empty($this->owner->Title))
+                        $words = array_merge($words, $titlePieces, $titlePieces, $titlePieces);
+
+                    // add the content
+                    if (!empty($this->owner->Content))
+                        $words = array_merge($words, explode(' ', strip_tags($this->owner->Content)));
+
+                }
 
                 // generate weightings weighting
                 foreach($words as $word){
