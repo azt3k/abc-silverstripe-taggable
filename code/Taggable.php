@@ -375,8 +375,9 @@ class Taggable extends DataExtension {
                 if ($this->owner->RestrictToKnownTags) {
 
                     // handle the loading
-                    $filter = array_keys($parsed);
-                    $tags = new DataList('Tag');
+                    $tKey = 'full-tag-list';
+                    if (empty(static::$cache[$tKey])) static::$cache[$tKey] = new DataList('Tag');
+                    $tags = static::$cache[$tKey];
 
                     // compare each tag with the content
                     foreach ($tags as $tag) {
@@ -428,7 +429,11 @@ class Taggable extends DataExtension {
                 }
                 $tags = implode(', ', $dChecked);
 
-                if ($this->owner->ReGenerateTags) $this->owner->Tags = $tags;
+                // update tags if there are none or we are doing a forced update
+                if ($this->owner->ReGenerateTags || !$this->owner->Tags) $this->owner->Tags = $tags;
+
+                // update meta keywords if there are none
+                // there's a reconciliation between tags and keywords further down
                 if ($this->owner->ReGenerateKeywords) $this->owner->MetaKeywords = $tags;
             }
         }
