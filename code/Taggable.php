@@ -4,7 +4,8 @@ class Taggable extends DataExtension {
 
     // secret stuff
     // ------------
-    protected $cache = [];
+
+    protected static $cache = [];
 
     // Framework
     // ---------
@@ -144,6 +145,7 @@ class Taggable extends DataExtension {
     }
 
     protected static function safe_args($arg) {
+        if (is_array($arg)) $arg = implode('_', $arg);
         return preg_replace('/[^A-Za-z0-9]/', '_', $arg);
     }
 
@@ -159,7 +161,13 @@ class Taggable extends DataExtension {
     public static function getTaggedWith($tags, $filterSql = null, $start = 0, $limit = 40, $lookupMode = 'OR') {
 
         $key = preg_replace('/[^A-Za-z0-9]/', '_', __FUNCTION__) .
-               implode('_', array_map([get_called_class(), 'safe_args'], func_get_args()));
+               implode(
+                    '_',
+                    array_map(
+                        array(get_called_class(), 'safe_args'),
+                        func_get_args()
+                    )
+                );
 
         if (empty(static::$cache[$key])) {
 
@@ -370,7 +378,6 @@ class Taggable extends DataExtension {
                     // generate words from content
                     $titlePieces = explode(' ', strip_tags($this->owner->Title));
 
-
                     // title weighting x3
                     if (!empty($this->owner->Title))
                         $words = array_merge($words, $titlePieces, $titlePieces, $titlePieces);
@@ -381,7 +388,7 @@ class Taggable extends DataExtension {
 
                 }
 
-                // generate weightings weighting
+                // generate weightings
                 foreach($words as $word){
                     $word = strtolower(trim(html_entity_decode(strval($word))));
                     $word = trim($word, ',.!');
