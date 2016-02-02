@@ -7,6 +7,6 @@ class Tag extends DataObject {
     );
 
     private static $indexes = array(
-        'Title'
+        'Title' => true
     );
 }
