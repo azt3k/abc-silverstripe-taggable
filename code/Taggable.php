@@ -120,6 +120,10 @@ class Taggable extends DataExtension {
             : null ;
     }
 
+    /**
+     * cache proxy method for DataObjectHelper
+     * @return [type] [description]
+     */
     protected static function extended_classes() {
         $key = 'extended_classes';
         if (empty(static::$cache[$key])) {
@@ -128,6 +132,11 @@ class Taggable extends DataExtension {
         return static::$cache[$key];
     }
 
+    /**
+     * cache proxy method for DataObjectHelper
+     * @param  [type] $className [description]
+     * @return [type]            [description]
+     */
     protected static function table_for_class($className) {
         $key = 'table_for_class' . $className;
         if (empty(static::$cache[$key])) {
@@ -136,6 +145,12 @@ class Taggable extends DataExtension {
         return static::$cache[$key];
     }
 
+    /**
+     * cache proxy method for DataObjectHelper
+     * @param  [type] $className [description]
+     * @param  [type] $prop      [description]
+     * @return [type]            [description]
+     */
     protected static function extension_table_for_class_with_property($className, $prop) {
         $key = 'extension_table_for_class_with_property' . $className . $prop;
         if (empty(static::$cache[$key])) {
@@ -144,6 +159,11 @@ class Taggable extends DataExtension {
         return static::$cache[$key];
     }
 
+    /**
+     * converts an arg into a safe key for the cache
+     * @param  polymorphic $arg [description]
+     * @return string           [description]
+     */
     protected static function safe_args($arg) {
         if (is_array($arg)) $arg = implode('_', $arg);
         return preg_replace('/[^A-Za-z0-9]/', '_', $arg);
