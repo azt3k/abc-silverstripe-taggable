@@ -2,6 +2,10 @@
 
 class Taggable extends DataExtension {
 
+    // secret stuff
+    // ------------
+    protected $cache = [];
+
     // Framework
     // ---------
 
@@ -115,6 +119,34 @@ class Taggable extends DataExtension {
             : null ;
     }
 
+    protected static function extended_classes() {
+        $key = 'extended_classes';
+        if (empty(static::$cache[$key])) {
+            static::$cache[$key] = DataObjectHelper::getExtendedClasses('Taggable');
+        }
+        return static::$cache[$key];
+    }
+
+    protected static function table_for_class($className) {
+        $key = 'table_for_class' . $className;
+        if (empty(static::$cache[$key])) {
+            static::$cache[$key] = DataObjectHelper::getTableForClass($className);
+        }
+        return static::$cache[$key];
+    }
+
+    protected static function extension_table_for_class_with_property($className, $prop) {
+        $key = 'extension_table_for_class_with_property' . $className . $prop;
+        if (empty(static::$cache[$key])) {
+            static::$cache[$key] =  DataObjectHelper::getExtensionTableForClassWithProperty($className, $prop);
+        }
+        return static::$cache[$key];
+    }
+
+    protected static function safe_args($arg) {
+        return preg_replace('/[^A-Za-z0-9]/', '_', $arg);
+    }
+
     /**
      * [getTaggedWith description]
      * @param [type]  $tags       [description]
@@ -124,108 +156,118 @@ class Taggable extends DataExtension {
      * @param string  $lookupMode if AND then you get content tagged with all ptovided tags
      *                            if OR then you get content tagged with at least one of the provided tags
      */
-    public static function getTaggedWith($tags, $filterSql = null, $start = 0, $limit = 40, $lookupMode = 'OR'){
+    public static function getTaggedWith($tags, $filterSql = null, $start = 0, $limit = 40, $lookupMode = 'OR') {
 
-        // clean up input
-        if (!is_array($tags)) $tags = array($tags);
-        if ($lookupMode != 'AND' && $lookupMode != 'OR') throw new Exception('Invalid lookupMode supplied');
+        $key = preg_replace('/[^A-Za-z0-9]/', '_', __FUNCTION__) .
+               implode('_', array_map([get_called_class(), 'safe_args'], func_get_args()));
 
-        // Set some vars
-        $classes     = DataObjectHelper::getExtendedClasses('Taggable');
-        $set         = new ArrayList;
-        $db          = AbcDB::getInstance();
-        $sql         = '';
-        $tables = $joins = $filter = array();
+        if (empty(static::$cache[$key])) {
 
-        // Build Query Data
-        foreach($classes as $className){
+            // clean up input
+            if (!is_array($tags)) $tags = array($tags);
+            if ($lookupMode != 'AND' && $lookupMode != 'OR') throw new Exception('Invalid lookupMode supplied');
 
-            // Fetch Class Data
-            $table      = DataObjectHelper::getTableForClass($className);
-            $extTable   = DataObjectHelper::getExtensionTableForClassWithProperty($className, 'Tags');
+            // Set some vars
+            $classes     = static::extended_classes();
+            $set         = new ArrayList;
+            $db          = AbcDB::getInstance();
+            $sql         = '';
+            $tables = $joins = $filter = array();
 
-            // $tables we are working with
-            if ($table) $tables[$table] = $table;
+            // Build Query Data
+            foreach($classes as $className){
 
-            // join
-            if( $table && $extTable && $table!=$extTable ){
-                $joins[$table][] = $extTable;
-            }elseif($extTable){
-                $tables[$extTable] = $extTable;
-            }
+                // Fetch Class Data
+                $table      = static::table_for_class($className);
+                $extTable   = static::extension_table_for_class_with_property($className, 'Tags');
 
-            // Where
-            if ($table) $where[$table][] = "LOWER(" .$table . ".ClassName) = '" . strtolower($className) . "'";
-
-            // Tag filter
-            // Should be REGEX so we don't get partial matches
-            if ($extTable) {
-                foreach ($tags as $tag) {
-                    $filter[$table][] = $extTable . ".Tags REGEXP '(^|,| )+" . Convert::raw2sql($tag) . "($|,| )+'";
-                }
-            }
-        }
-
-        // Build Query
-        foreach($tables as $table){
-
-            if (array_key_exists($table, $joins)){
-
-                // Prepare Where Statement
-                $uWhere     = array_unique($where[$table]);
-                $uFilter    = array_unique($filter[$table]);
-
-                // this lookupMode injection will prob break something in AND mode
-                $wSql         = "(".implode(' OR ',$uWhere).") AND (".implode(' ' . $lookupMode . ' ',$uFilter).")";
-
-                // Make the rest of the SQL
-                if ($sql) $sql.= "UNION ALL"."\n\n";
-                $rowCountSQL = !$sql ? "SQL_CALC_FOUND_ROWS " : "" ;
-                $sql.= "SELECT " . $rowCountSQL . $table . ".ClassName, " . $table . ".ID" . "\n";
-                $sql.= "FROM " . $table . "\n";
+                // $tables we are working with
+                if ($table) $tables[$table] = $table;
 
                 // join
-                $join = array_unique($joins[$table]);
-                foreach($join as $j){
-                    $sql .= " LEFT JOIN " . $j . " ON " . $table . ".ID = " . $j . ".ID" . "\n";
+                if ($table && $extTable && $table!=$extTable) {
+                    $joins[$table][] = $extTable;
+                } elseif($extTable) {
+                    $tables[$extTable] = $extTable;
                 }
 
-                // Add the WHERE statement
-                $sql .= "WHERE " . $wSql . "\n\n";
+                // Where
+                if ($table) $where[$table][] = "LOWER(" .$table . ".ClassName) = '" . strtolower($className) . "'";
+
+                // Tag filter
+                // Should be REGEX so we don't get partial matches
+                if ($extTable) {
+                    foreach ($tags as $tag) {
+                        $filter[$table][] = $extTable . ".Tags REGEXP '(^|,| )+" . Convert::raw2sql($tag) . "($|,| )+'";
+                    }
+                }
             }
+
+            // Build Query
+            foreach($tables as $table){
+
+                if (array_key_exists($table, $joins)){
+
+                    // Prepare Where Statement
+                    $uWhere     = array_unique($where[$table]);
+                    $uFilter    = array_unique($filter[$table]);
+
+                    // this lookupMode injection will prob break something in AND mode
+                    $wSql         = "(".implode(' OR ',$uWhere).") AND (".implode(' ' . $lookupMode . ' ',$uFilter).")";
+
+                    // Make the rest of the SQL
+                    if ($sql) $sql.= "UNION ALL"."\n\n";
+                    $rowCountSQL = !$sql ? "SQL_CALC_FOUND_ROWS " : "" ;
+                    $sql.= "SELECT " . $rowCountSQL . $table . ".ClassName, " . $table . ".ID" . "\n";
+                    $sql.= "FROM " . $table . "\n";
+
+                    // join
+                    $join = array_unique($joins[$table]);
+                    foreach($join as $j){
+                        $sql .= " LEFT JOIN " . $j . " ON " . $table . ".ID = " . $j . ".ID" . "\n";
+                    }
+
+                    // Add the WHERE statement
+                    $sql .= "WHERE " . $wSql . "\n\n";
+                }
+            }
+
+            // Add Global Filter to Query
+            if ($filterSql) {
+                $sql .= (count($tables) == 1 ? "AND " : "WHERE ") . $filterSql;
+            }
+
+            // Add Limits to Query
+            $sql .= " LIMIT " . $start . "," . $limit;
+
+            // Get Data
+            // die($sql);
+            $result = $db->query($sql);
+            $result = $result ? $result->fetchAll(PDO::FETCH_OBJ) : array() ;
+
+            // Convert to DOs
+            foreach( $result as $entry ){
+
+                // Make the data easier to work with
+                $entry         = (object) $entry;
+                $className     = $entry->ClassName;
+
+                // this is faster but might not pull in relations
+                //$dO = new $className;
+                //$dO = DataObjectHelper::populate($dO, $entry);
+
+                // this is slower, but will be more reliable
+                $dO = DataObject::get_by_id($className, $entry->ID);
+
+                $set->push($dO);
+            }
+            $set->unlimitedRowCount = $db->query('SELECT FOUND_ROWS() AS total')->fetch(PDO::FETCH_OBJ)->total;
+
+            static::$cache[$key] = $set;
+
         }
 
-        // Add Global Filter to Query
-        if ($filterSql) {
-            $sql .= (count($tables) == 1 ? "AND " : "WHERE ") . $filterSql;
-        }
-
-        // Add Limits to Query
-        $sql .= " LIMIT " . $start . "," . $limit;
-
-        // Get Data
-        // die($sql);
-        $result = $db->query($sql);
-        $result = $result ? $result->fetchAll(PDO::FETCH_OBJ) : array() ;
-
-        // Convert to DOs
-        foreach( $result as $entry ){
-
-            // Make the data easier to work with
-            $entry         = (object) $entry;
-            $className     = $entry->ClassName;
-
-            // this is faster but might not pull in relations
-            //$dO = new $className;
-            //$dO = DataObjectHelper::populate($dO, $entry);
-
-            // this is slower, but will be more reliable
-            $dO = DataObject::get_by_id($className, $entry->ID);
-
-            $set->push($dO);
-        }
-        $set->unlimitedRowCount = $db->query('SELECT FOUND_ROWS() AS total')->fetch(PDO::FETCH_OBJ)->total;
-        return $set;
+        return static::$cache[$key];
 
     }
 
@@ -234,7 +276,7 @@ class Taggable extends DataExtension {
     public static function tags2Links($strTags){
 
         // find the url of the tags page
-        if (!$tagsPageURL=self::getTagPageLink()) throw new Exception('There is no page of type TagsPage in the site tree');
+        if (!$tagsPageURL = self::getTagPageLink()) throw new Exception('There is no page of type TagsPage in the site tree');
 
         $outputTags = explode(',',$strTags);
         $tempTags = array();
@@ -274,22 +316,26 @@ class Taggable extends DataExtension {
         // call the parent onBeforeWrite
         parent::onBeforeWrite();
 
-        // add some tags if there are none
+        // add some tags if there are none or we are forcing a refresh
         if (
             !$this->owner->Tags ||
             $this->owner->ReGenerateTags ||
             $this->owner->ReGenerateKeywords
         ) {
 
+            // double check to see if there are any meta key words and we aren't forcing a refresh
             if (
                 !empty($this->owner->MetaKeywords) &&
                 !$this->owner->ReGenerateTags &&
                 !$this->owner->ReGenerateKeywords
             ) {
 
+                // if there are keywords and no tags use the keywords
                 $this->owner->Tags = $this->owner->MetaKeywords;
+            }
 
-            } else {
+            // there were no meta keywords or we are forcing a refresh
+            else {
 
                 // get the blacklist
                 $exclude = static::get_blacklisted_words();
