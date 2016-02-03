@@ -10,8 +10,8 @@ class Taggable extends DataExtension {
     // Framework
     // ---------
 
-    public static $default_num_page_items     = 10;
-    protected static $tags_page_link        = null;
+    public static $default_num_page_items = 10;
+    protected static $tags_page_link = null;
 
     private static $db = array(
         'Tags' => 'Text',
@@ -19,7 +19,10 @@ class Taggable extends DataExtension {
         'ReGenerateTags' => 'Boolean',
         'ReGenerateKeywords' => 'Boolean',
         'RestrictToKnownTags' => 'Boolean',
+        'BlockScrape' => 'Boolean',
     );
+
+    private static $defaults = array();
 
     private static $indexes = array(
         'Tags'  => array(
@@ -33,6 +36,8 @@ class Taggable extends DataExtension {
     also where is updateCMSFields_forPopup
     */
     public function updateCMSFields(FieldList $fields) {
+
+        $fields->removeByName('BlockScrape');
 
         if (get_class($fields->fieldByName('Root.Main')) == 'TabSet') {
 
@@ -95,11 +100,25 @@ class Taggable extends DataExtension {
     protected function getTagFields() {
 
         $fields = new FieldList(
-            new CheckboxField('RestrictToKnownTags', 'Restrict to known terms when regenerating'),
+            LiteralField::create('BlockScrapeTitle', '<p>Block tag and meta keywords generation</p>'),
+            SelectionGroup::create('BlockScrape', [
+                new SelectionGroup_Item(
+                    'Yes',
+                    [],
+                    true
+                ),
+                new SelectionGroup_Item(
+                    'No',
+                    [
+                        new CheckboxField('ReGenerateTags', 'Regenerate tags on save'),
+                        new CheckboxField('ReGenerateKeywords', 'Regenerate keywords on save'),
+                        new CheckboxField('RestrictToKnownTags', 'Restrict to known terms when regenerating'),
+                    ],
+                    false
+                ),
+            ])->addExtraClass('field'),
             new TextField('MetaKeywords', 'Meta Keywords (comma separated)'),
-            new CheckboxField('ReGenerateKeywords', 'Regenerate Keywords'),
-            new TextField('Tags', 'Tags (comma separated)'),
-            new CheckboxField('ReGenerateTags', 'Regenerate Tags')
+            new TextField('Tags', 'Tags (comma separated)')
         );
 
         return $fields;
@@ -160,6 +179,24 @@ class Taggable extends DataExtension {
     }
 
     /**
+     * cache proxy method for DataList
+     */
+    protected static function allTags() {
+        $tKey = 'full-tag-list';
+        if (empty(static::$cache[$tKey])) static::$cache[$tKey] = new DataList('Tag');
+        return static::$cache[$tKey];
+    }
+
+    /**
+     * cache proxy method for allTags()->map
+     */
+    protected static function allTagArr() {
+        $tKey = 'full-tag-list-arr';
+        if (empty(static::$cache[$tKey])) static::$cache[$tKey] = static::AllTags()->map();
+        return static::$cache[$tKey];
+    }
+
+    /**
      * converts an arg into a safe key for the cache
      * @param  polymorphic $arg [description]
      * @return string           [description]
@@ -180,6 +217,7 @@ class Taggable extends DataExtension {
      */
     public static function getTaggedWith($tags, $filterSql = null, $start = 0, $limit = 40, $lookupMode = 'OR') {
 
+        // generate a cache key
         $key = preg_replace('/[^A-Za-z0-9]/', '_', __FUNCTION__) .
                implode(
                     '_',
@@ -189,6 +227,7 @@ class Taggable extends DataExtension {
                     )
                 );
 
+        // chache hit?
         if (empty(static::$cache[$key])) {
 
             // clean up input
@@ -344,6 +383,9 @@ class Taggable extends DataExtension {
         // call the parent onBeforeWrite
         parent::onBeforeWrite();
 
+        // do nothing if block scrape is set
+        if ($this->BlockScrape) return;
+
         // add some tags if there are none or we are forcing a refresh
         if (
             !$this->owner->Tags ||
@@ -375,20 +417,18 @@ class Taggable extends DataExtension {
                 if ($this->owner->RestrictToKnownTags) {
 
                     // handle the loading
-                    $tKey = 'full-tag-list';
-                    if (empty(static::$cache[$tKey])) static::$cache[$tKey] = new DataList('Tag');
-                    $tags = static::$cache[$tKey];
+                    $tags = static::allTagArr();
 
                     // compare each tag with the content
                     foreach ($tags as $tag) {
 
                         // title weighting x3
-                        if (stripos(strip_tags($this->owner->Title), $tag->Title) !== false)
-                            $words = array_merge($words, array($tag->Title, $tag->Title, $tag->Title));
+                        if (stripos(strip_tags($this->owner->Title), $tag) !== false)
+                            $words = array_merge($words, array($tag, $tag, $tag));
 
                         // add the content
-                        if (stripos(strip_tags($this->owner->Content), $tag->Title) !== false)
-                            $words[] = $tag->Title;
+                        if (stripos(strip_tags($this->owner->Content), $tag) !== false)
+                            $words[] = $tag;
 
                     }
                 }
@@ -447,9 +487,5 @@ class Taggable extends DataExtension {
         $this->owner->Tags = strtolower($this->owner->Tags);
         $this->owner->MetaKeywords = strtolower($this->owner->MetaKeywords);
 
-        // unset the Regen Params
-        $this->owner->ReGenerateTags = null;
-        $this->owner->ReGenerateKeywords = null;
     }
-
 }
