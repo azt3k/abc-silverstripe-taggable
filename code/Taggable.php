@@ -384,7 +384,7 @@ class Taggable extends DataExtension {
         parent::onBeforeWrite();
 
         // do nothing if block scrape is set
-        if ($this->BlockScrape) return;
+        if ($this->owner->BlockScrape) return;
 
         // add some tags if there are none or we are forcing a refresh
         if (
