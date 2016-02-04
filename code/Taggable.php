@@ -126,7 +126,7 @@ class Taggable extends DataExtension {
 
     // need to get these to work properly
     public function getExplodedTags(){
-        return array_map('trim', explode(',', $this->owner->Tags));
+        return static::explode_tags($this->owner->Tags);
     }
 
     public function setExplodedTags($tags){
@@ -137,6 +137,31 @@ class Taggable extends DataExtension {
         return $this->owner->Tags
             ? self::tags2Links($this->owner->Tags)
             : null ;
+    }
+
+    /**
+     * extracts hashtags from a string
+     * @param  string $str [description]
+     * @return array        [description]
+     */
+    public static function extract_hash_tags($str) {
+        $hashtags = [];
+        preg_match_all('/(#\w+)/u', $str, $matches);
+        if ($matches) {
+            $hashtagsArray = array_count_values($matches[0]);
+            $hashtags = array_keys($hashtagsArray);
+        }
+        return $hashtags;
+    }
+
+    /**
+     * converts a string of tags into an array
+     * @param  string $tags [description]
+     * @return array        [description]
+     */
+    public static function explode_tags($tags) {
+        if (is_array($tags)) return $tags;
+        return array_map('trim', explode(',', $tags));
     }
 
     /**
@@ -181,18 +206,18 @@ class Taggable extends DataExtension {
     /**
      * cache proxy method for DataList
      */
-    protected static function allTags() {
+    protected static function all_tags() {
         $tKey = 'full-tag-list';
         if (empty(static::$cache[$tKey])) static::$cache[$tKey] = new DataList('Tag');
         return static::$cache[$tKey];
     }
 
     /**
-     * cache proxy method for allTags()->map
+     * cache proxy method for all_tags()->map
      */
-    protected static function allTagArr() {
+    protected static function all_tag_arr() {
         $tKey = 'full-tag-list-arr';
-        if (empty(static::$cache[$tKey])) static::$cache[$tKey] = static::AllTags()->map();
+        if (empty(static::$cache[$tKey])) static::$cache[$tKey] = static::all_tags()->map();
         return static::$cache[$tKey];
     }
 
@@ -207,7 +232,60 @@ class Taggable extends DataExtension {
     }
 
     /**
-     * [getTaggedWith description]
+     * Returns a datalist filtered by tags
+     * @param  string       $className  the name of the class to get
+     * @param  array|string $tags       description]
+     * @param  string $tags $where      an additional SQL fragment to append to the where clause
+     * @return DataList                 the data list containing the tagged content
+     */
+    public static function tagged_with($className, $tags, $where = '', $lookupMode = 'OR') {
+
+        // validate args
+        if ($lookupMode != 'AND' && $lookupMode != 'OR')
+            throw new Exception('Invalid lookupMode supplied');
+
+        // generate a cache key
+        $key = preg_replace('/[^A-Za-z0-9]/', '_', __FUNCTION__) .
+               implode(
+                    '_',
+                    array_map(
+                        array(get_called_class(), 'safe_args'),
+                        func_get_args()
+                    )
+                );
+
+        // chache hit?
+        if (empty(static::$cache[$key])) {
+
+            // sanity check
+            if (!is_array($tags)) $tags = static::explode_tags($tags);
+
+            // set where fragment
+            $tWhere = '';
+
+            // build tag filter
+            foreach ($tags as $tag) {
+                $tWhere .= ($tWhere ? $lookupMode : '' ) .
+                          ' Tags REGEXP \'(^|,| )+' . Convert::raw2sql($tag) . '($|,| )+\'';
+            }
+
+            // allow for AND / OR to be supplied in the $where
+            $firstWord = explode(' ', strtoupper(trim($where)))[0];
+            if ($firstWord != 'AND' && $firstWord != 'OR') $where = 'AND (' . $where . ')';
+
+            // compile complete where
+            $where = '(' . $tWhere . ') ' . $where;
+
+            // store this Datalist for later
+            static::$cache[$key] = DataList::create($className)->where($where);
+        }
+
+        // return the cached value
+        return static::$cache[$key];
+    }
+
+    /**
+     * ye olde getTaggedWith method - hopefully superceeded by the tagged_with method
      * @param [type]  $tags       [description]
      * @param [type]  $filterSql  [description]
      * @param integer $start      [description]
@@ -231,7 +309,7 @@ class Taggable extends DataExtension {
         if (empty(static::$cache[$key])) {
 
             // clean up input
-            if (!is_array($tags)) $tags = array($tags);
+            if (!is_array($tags)) $tags = static::explode_tags($tags);
             if ($lookupMode != 'AND' && $lookupMode != 'OR') throw new Exception('Invalid lookupMode supplied');
 
             // Set some vars
@@ -378,8 +456,16 @@ class Taggable extends DataExtension {
     // onBeforeWrite
     // ----------------------------------------------------------------------------
 
-    public function onBeforeWrite()
-    {
+    /**
+     * we currently always append hashtags
+     * this might produce unexpected results if they are using RestrictToKnownTags
+     * are hashtags "known tags"?
+     * do we need another flag e.g. TreatHashTagsAsKnownTags?
+     * appending tags to the Tag table on save?
+     * @return void
+     */
+    public function onBeforeWrite() {
+
         // call the parent onBeforeWrite
         parent::onBeforeWrite();
 
@@ -417,7 +503,7 @@ class Taggable extends DataExtension {
                 if ($this->owner->RestrictToKnownTags) {
 
                     // handle the loading
-                    $tags = static::allTagArr();
+                    $tags = static::all_tag_arr();
 
                     // compare each tag with the content
                     foreach ($tags as $tag) {
@@ -467,6 +553,17 @@ class Taggable extends DataExtension {
                     $value = strval($value);
                     if (!empty($value) && strlen($value) > 3 ) $dChecked[] = $value;
                 }
+
+                // append any hashtags
+                // this might produce unexpected results if they are using RestrictToKnownTags
+                // are hashtags "known tags"?
+                // do we need another flag
+                $dChecked = array_merge(
+                    $dChecked,
+                    static::extract_hash_tags($this->owner->Title . ' ' . $this->owner->Content)
+                );
+
+                // generate string
                 $tags = implode(', ', $dChecked);
 
                 // update tags if there are none or we are doing a forced update
