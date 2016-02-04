@@ -103,18 +103,18 @@ class Taggable extends DataExtension {
             LiteralField::create('BlockScrapeTitle', '<p>Block tag and meta keywords generation</p>'),
             SelectionGroup::create('BlockScrape', [
                 new SelectionGroup_Item(
-                    'Yes',
+                    true,
                     [],
-                    true
+                    'Yes'
                 ),
                 new SelectionGroup_Item(
-                    'No',
+                    false,
                     [
                         new CheckboxField('ReGenerateTags', 'Regenerate tags on save'),
                         new CheckboxField('ReGenerateKeywords', 'Regenerate keywords on save'),
                         new CheckboxField('RestrictToKnownTags', 'Restrict to known terms when regenerating'),
                     ],
-                    false
+                    'No'
                 ),
             ])->addExtraClass('field'),
             new TextField('MetaKeywords', 'Meta Keywords (comma separated)'),
