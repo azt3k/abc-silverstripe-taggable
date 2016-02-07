@@ -19,10 +19,16 @@ class Taggable extends DataExtension {
         'ReGenerateTags' => 'Boolean',
         'ReGenerateKeywords' => 'Boolean',
         'RestrictToKnownTags' => 'Boolean',
+        'TreatHashTagsAsKnownTags' => 'Boolean',
         'BlockScrape' => 'Boolean',
     );
 
-    private static $defaults = array();
+    private static $defaults = array(
+        'ReGenerateTags' => true,
+        'ReGenerateKeywords' => true,
+        'TreatHashTagsAsKnownTags' => true,
+        'RestrictToKnownTags' => false
+    );
 
     private static $indexes = array(
         'Tags'  => array(
@@ -113,6 +119,7 @@ class Taggable extends DataExtension {
                         new CheckboxField('ReGenerateTags', 'Regenerate tags on save'),
                         new CheckboxField('ReGenerateKeywords', 'Regenerate keywords on save'),
                         new CheckboxField('RestrictToKnownTags', 'Restrict to known terms when regenerating'),
+                        new CheckboxField('TreatHashTagsAsKnownTags', 'Treat hash tags as known tags'),
                     ],
                     'No'
                 ),
@@ -555,13 +562,18 @@ class Taggable extends DataExtension {
                 }
 
                 // append any hashtags
-                // this might produce unexpected results if they are using RestrictToKnownTags
-                // are hashtags "known tags"?
-                // do we need another flag
-                $dChecked = array_merge(
-                    $dChecked,
-                    static::extract_hash_tags($this->owner->Title . ' ' . $this->owner->Content)
-                );
+                if (
+                    !$this->owner->RestrictToKnownTags ||
+                    (
+                        $this->owner->RestrictToKnownTags &&
+                        $this->owner->TreatHashTagsAsKnownTags
+                    )
+                ) {
+                    $dChecked = array_merge(
+                        $dChecked,
+                        static::extract_hash_tags($this->owner->Title . ' ' . $this->owner->Content)
+                    );
+                }
 
                 // generate string
                 $tags = implode(', ', $dChecked);
