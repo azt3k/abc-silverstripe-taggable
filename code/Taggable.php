@@ -278,7 +278,7 @@ class Taggable extends DataExtension {
 
             // allow for AND / OR to be supplied in the $where
             $firstWord = explode(' ', strtoupper(trim($where)))[0];
-            if ($firstWord != 'AND' && $firstWord != 'OR') $where = 'AND (' . $where . ')';
+            if ($where && $firstWord != 'AND' && $firstWord != 'OR') $where = 'AND (' . $where . ')';
 
             // compile complete where
             $where = '(' . $tWhere . ') ' . $where;
