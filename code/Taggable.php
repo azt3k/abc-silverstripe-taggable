@@ -224,7 +224,13 @@ class Taggable extends DataExtension {
      */
     protected static function all_tag_arr() {
         $tKey = 'full-tag-list-arr';
-        if (empty(static::$cache[$tKey])) static::$cache[$tKey] = static::all_tags()->map();
+        if (empty(static::$cache[$tKey])) {
+            $r = array();
+            foreach (static::all_tags() as $tag) {
+                $r[] = $tag->Title;
+            }
+            static::$cache[$tKey] = $r;
+        }
         return static::$cache[$tKey];
     }
 
@@ -393,7 +399,6 @@ class Taggable extends DataExtension {
             $sql .= " LIMIT " . $start . "," . $limit;
 
             // Get Data
-            // die($sql);
             $result = $db->query($sql);
             $result = $result ? $result->fetchAll(PDO::FETCH_OBJ) : array() ;
 
